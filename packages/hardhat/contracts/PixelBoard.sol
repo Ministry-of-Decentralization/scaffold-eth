@@ -1,14 +1,14 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-contract PixelBoard {
+
+contract Alleybox {
   enum Walls { north, south, east, west, floor, ceiling }
   uint8 constant public brickRowCount = 150;
-  uint8 constant public brickThird = brickRowCount / 3;
-  uint16 constant public brickRowCount50 = brickRowCount * brickThird;
-  uint16 constant public bricksLength = brickRowCount * brickRowCount;
+  uint16 constant public brickRowCount50 = 150 * 50;
+  uint16 constant public bricksLength = 150 * 150;
   uint16 constant public bricksColorRowLength = 3 * brickRowCount;
-  uint32 constant public bricksColorLength = brickRowCount * brickRowCount;
+  uint32 constant public bricksColorLength = 150 * 150;
   
   struct Brick {
     address owner;
@@ -94,7 +94,6 @@ contract PixelBoard {
   ) {
     Wall storage wall = walls[_wall];
     uint32 start = _row * brickRowCount;
-    console.log("copying wall starting at :", start,  _row);
     for (uint32 i = 0; i < brickRowCount; i++) {
       uint32 copyIndex = start + i;
       // console.log("copying wall:", copyIndex, i, wall.brickColors[start + i]);
