@@ -2,13 +2,16 @@
 pragma solidity ^0.8.4;
 
 
-contract Alleybox {
+contract PixelBoard {
   enum Walls { north, south, east, west, floor, ceiling }
-  uint8 constant public brickRowCount = 150;
-  uint16 constant public brickRowCount50 = 150 * 50;
-  uint16 constant public bricksLength = 150 * 150;
+  // the number of colored squares or "bricks" per row
+  uint16 constant public brickRowCount = 150;
+
+  // walls are squares so the number of bricks per wall is rowCount * rowCount
+  uint16 constant public brickWallCount = brickRowCount * brickRowCount;
+  // color value for each brick are stored as rgb so the length of the array of brock colors is 3 * rowCount 
   uint16 constant public bricksColorRowLength = 3 * brickRowCount;
-  uint32 constant public bricksColorLength = 150 * 150;
+ 
   
   struct Brick {
     address owner;
@@ -19,7 +22,7 @@ contract Alleybox {
 
   struct Wall {
     Brick[brickRowCount][brickRowCount] bricks;
-    bytes3[bricksColorLength] brickColors;
+    bytes3[brickWallCount] brickColors;
   }
 
   event BrickUpdated(address owner, bytes3 rgb, uint256 price);
@@ -78,10 +81,10 @@ contract Alleybox {
   }
 
   // get an entire wall array, requires ~28MM gas
-  function getWall(
+  function getWallColors(
     uint8 _wall
   ) public view returns (
-    bytes3[bricksLength] memory
+    bytes3[brickWallCount] memory
   ) {
     return walls[_wall].brickColors;
   }
@@ -95,26 +98,6 @@ contract Alleybox {
     Wall storage wall = walls[_wall];
     uint32 start = _row * brickRowCount;
     for (uint32 i = 0; i < brickRowCount; i++) {
-      uint32 copyIndex = start + i;
-      // console.log("copying wall:", copyIndex, i, wall.brickColors[start + i]);
-
-      row[i] = wall.brickColors[copyIndex];
-    }
-  }
-
-  // this function can be used to get a wall if a full wall query is unavailable because of gas limitations
-  function getWallRows(
-    uint8 _wall,
-    uint8 _start
-    //uint8 _count
-  ) public view returns (
-    bytes3[brickRowCount50] memory row
-  ) {
-    Wall storage wall = walls[_wall];
-    uint32 start = _start * brickRowCount;  
-    // uint32 end = brickRowCount * 5;// * _count;
-    // console.log("copying wall starting at :", start,  end, _start, _count);
-    for (uint32 i = 0; i < brickRowCount50; i++) {
       uint32 copyIndex = start + i;
       // console.log("copying wall:", copyIndex, i, wall.brickColors[start + i]);
 
