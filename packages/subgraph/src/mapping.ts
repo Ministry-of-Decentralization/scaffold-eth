@@ -1,11 +1,20 @@
 import { BigInt, Address } from "@graphprotocol/graph-ts";
 import {
-  YourContract,
-  SetPurpose,
+  BrickUpdated,
+  PixelBoardInit,
 } from "../generated/YourContract/YourContract";
-import { Purpose, Sender } from "../generated/schema";
+import { Brick, Wall } from "../generated/schema";
 
-export function handleSetPurpose(event: SetPurpose): void {
+let wallPositions = [
+  'north',
+  'south',
+  'east',
+  'west',
+  'floor',
+  'ceiling'
+]
+
+export function handleBrickUpdated(event: BrickUpdated): void {
   let senderString = event.params.sender.toHexString();
 
   let sender = Sender.load(senderString);

@@ -1,8 +1,9 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
+import "@openzeppelin/contracts/ownership/Ownable.sol";
 
-contract PixelBoard {
+contract PixelBoard is Ownable {
   enum Walls { north, south, east, west, floor, ceiling }
   // the number of colored squares or "bricks" per row
   uint16 constant public brickRowCount = 150;
@@ -25,9 +26,14 @@ contract PixelBoard {
     bytes3[brickWallCount] brickColors;
   }
 
-  event BrickUpdated(address owner, bytes3 rgb, uint256 price);
+  event BrickUpdated(address owner, Walls wall, uint16 x, uint16 y, bytes3 rgb, uint256 price);
+  event PixelBoardInit(address owner, uint16 brickRowcount);
 
   mapping(uint8 => Wall) walls;
+
+  constructor () {
+    emit PixelBoardInit(msg.sender, brickRowcount);
+  }
 
   function updateBrick(uint8 _wall, uint16 _x, uint16 _y, bytes3 _rgb, uint _price) internal {
     require(_x < brickRowCount && _y < brickRowCount && _wall < 6, "Coordinates are out of bounds");
@@ -43,7 +49,7 @@ contract PixelBoard {
 
     wall.brickColors[brickColorIndex] = _rgb;
 
-    emit BrickUpdated(msg.sender, _rgb, _price);
+    emit BrickUpdated(msg.sender, _wall, _x, _y, _rgb, _price);
 
   }
 
@@ -61,6 +67,15 @@ contract PixelBoard {
       transactionValue -= _price[i];
       updateBrick(_wall[i], _x[i], _y[i], _rgb[i], _price[i]);
     }
+  }
+
+  function withdrawFunds (address payable _payToAddr) public onlyOwner {
+    uint balance = address(this).balance;
+    _payToAddr.transfer(balance);
+  }
+
+  function getContractBalance () public view returns (uint) {
+    return address(this).balance;
   }
 
   function getBrick(

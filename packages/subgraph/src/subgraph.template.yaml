@@ -7,19 +7,21 @@ dataSources:
     network: localhost
     source:
       address: "{{localhost_YourContractAddress}}"
-      abi: YourContract
+      abi: PixelBoard
       startBlock: 1
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - Purpose
-        - Sender
+        - Brick
+        - Wall
       abis:
-        - name: YourContract
+        - name: PixelBoard
           file: ./abis/localhost_YourContract.json
       eventHandlers:
-        - event: SetPurpose(address,string)
-          handler: handleSetPurpose
+        - event: BrickUpdated(address,uint8,uint16,uint16,bytes3,uint256)
+          handler: handleBrickUpdated
+        - event: PixelBoardInit(address,uint16)
+          handler: handlePixelBoardInit
       file: ./src/mapping.ts

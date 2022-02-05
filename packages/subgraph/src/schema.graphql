@@ -1,15 +1,14 @@
-type Purpose @entity {
+type Brick @entity {
   id: ID!
-  sender: Sender!
-  purpose: String!
-  createdAt: BigInt!
-  transactionHash: String!
+  owner: Address!
+  x: Int!
+  y: Int!
+  rgb: String!
+  lastUpdated: String!
 }
 
-type Sender @entity {
+type Wall @entity {
   id: ID!
-  address: Bytes!
-  purposes: [Purpose!] @derivedFrom(field: "sender")
-  createdAt: BigInt!
-  purposeCount: BigInt!
+  bricks: [Brick!]!
+  rowCount: Int!
 }
