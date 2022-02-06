@@ -1,10 +1,10 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract PixelBoard is Ownable {
-  enum Walls { north, south, east, west, floor, ceiling }
+  // enum Walls { north, south, east, west, floor, ceiling }
   // the number of colored squares or "bricks" per row
   uint16 constant public brickRowCount = 150;
 
@@ -26,13 +26,13 @@ contract PixelBoard is Ownable {
     bytes3[brickWallCount] brickColors;
   }
 
-  event BrickUpdated(address owner, Walls wall, uint16 x, uint16 y, bytes3 rgb, uint256 price);
+  event BrickUpdated(address owner, uint8 wall,  uint16 x, uint16 y, bytes3 rgb, uint256 price);
   event PixelBoardInit(address owner, uint16 brickRowcount);
 
   mapping(uint8 => Wall) walls;
 
   constructor () {
-    emit PixelBoardInit(msg.sender, brickRowcount);
+    emit PixelBoardInit(msg.sender, brickRowCount);
   }
 
   function updateBrick(uint8 _wall, uint16 _x, uint16 _y, bytes3 _rgb, uint _price) internal {

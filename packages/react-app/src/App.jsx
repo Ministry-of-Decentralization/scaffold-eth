@@ -32,6 +32,7 @@ import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
 import { Home, ExampleUI, Hints, Subgraph } from "./views";
 import { useStaticJsonRPC } from "./hooks";
+import WallViewer from "./components/WallViewer";
 
 const { ethers } = require("ethers");
 /*
@@ -264,6 +265,9 @@ function App(props) {
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
         </Menu.Item>
+        <Menu.Item key="/walls">
+          <Link to="/walls">Walls</Link>
+        </Menu.Item>
         <Menu.Item key="/pixelpicker">
           <Link to="/pixelpicker">Pixel Picker</Link>
         </Menu.Item>
@@ -303,11 +307,14 @@ function App(props) {
             contractConfig={contractConfig}
           />
         </Route>
-        <Route>
-        <PixelPicker
-            signer={userSigner}
+        <Route path="/walls">
+          <WallViewer
+            readContracts={readContracts}
+          />
+        </Route>
+        <Route path="/pixelpicker">
+          <PixelPicker
             provider={localProvider}
-            address={address}
             writeContracts={writeContracts}
           />
         </Route>

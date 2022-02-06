@@ -105,7 +105,7 @@ const Canvas = ({squares, squaresHash, steps, stepSize, setCoords, setCanvasUrl,
   )
 }
 
-const defaultSquares = {
+export const defaultSquares = {
   north: {},
   south: {},
   east: {},
@@ -137,7 +137,7 @@ const formUpdateBricksArgs = (_wall, _wallSquares, _price) => {
   return [wall, x, y, rgb, price]
 }
 
-function App({signer, provider, address, writeContracts}) {
+function App({ provider, writeContracts}) {
   const [color, setColor] = useState({"r":176,"g":84,"b":84})
   const [canvasUrl, setCanvasUrl] = useState(null)
   const [squares, setSquares] =  useState(defaultSquares)
