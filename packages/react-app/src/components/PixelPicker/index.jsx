@@ -3,8 +3,9 @@ import { RgbColorPicker } from "react-colorful";
 import { Checkbox } from 'antd'
 
 import './App.css';
-import WallPicker from './components/ui/WallPicker';
-const { utils } = require("ethers");
+import WallPicker from './WallPicker';
+import FunctionButton from './FunctionButton';
+const { utils, BigNumber } = require("ethers");
 
 const STEP_SIZE = 7
 const STEPS = 150
@@ -104,26 +105,69 @@ const Canvas = ({squares, squaresHash, steps, stepSize, setCoords, setCanvasUrl,
   )
 }
 
+const defaultSquares = {
+  north: {},
+  south: {},
+  east: {},
+  west: {},
+  floor: {},
+  ceiling: {}
+}
 
-function App() {
+const walls = ['north', 'south', 'east', 'west', 'floor', 'ceiling']
+
+const formUpdateBricksArgs = (_wall, _wallSquares, _price) => {
+  const wall = []
+  const x = []
+  const y = []
+  const rgb = []
+  const price = []
+
+  Object.values(_wallSquares).forEach((square) => {
+    const coords = square.coords
+    const colors = square.color
+    const hexColor = `0x${colors.r.toString(16)}${colors.g.toString(16)}${colors.b.toString(16)}`
+    wall.push(walls.indexOf(_wall))
+    x.push(coords[0])
+    y.push(coords[1])
+    rgb.push(hexColor)
+    price.push(utils.parseUnits(_price).toString())
+  })
+
+  return [wall, x, y, rgb, price]
+}
+
+function App({signer, provider, address, writeContracts}) {
   const [color, setColor] = useState({"r":176,"g":84,"b":84})
   const [canvasUrl, setCanvasUrl] = useState(null)
-  const [squares, setSquares] =  useState({})
-  const [wall, setWall] = useState('North')
+  const [squares, setSquares] =  useState(defaultSquares)
+  const [wall, setWall] = useState('north')
   const [showGrid, setShowGrid] = useState(true)
+
+
+  const wallSquares = squares[wall]
+  const squareValues = Object.values(wallSquares)
+  const selectedCount = squareValues.length
+  const squaresHash = utils.id(JSON.stringify(wallSquares))
 
   const clickSquare = (color) => (coords) => {
     const coordsKey = `${coords[0]}_${coords[1]}`
-    setSquares({...squares, [coordsKey]: {color, coords}})
+    const updatedWall = {...wallSquares, [coordsKey]: {color, coords} }
+    setSquares({...squares, [wall]: updatedWall})
   }
-  const squareValues = Object.values(squares)
-  const selectedCount = squareValues.length
-  const squaresHash = utils.id(JSON.stringify(squares))
+  const validUpdateBricksArgs = squareValues.length > 0
+  const updateBrickArgs = validUpdateBricksArgs ?
+    formUpdateBricksArgs(wall, wallSquares, '0.1') : []
+  const updateBricksTxValue = validUpdateBricksArgs ?
+    updateBrickArgs[4].reduce((acc, p) => acc.add(p), BigNumber.from(0)).toString() : '0'
+
+  const updateBricks = writeContracts && writeContracts.PixelBoard ? writeContracts.PixelBoard.updateBricks : null
+  console.log('args: ', updateBrickArgs, 'txValue: ', updateBricksTxValue)
   return (
     <div className="App"  style={{display: "flex", margin: '1em'}}>
       <div>
         <div>
-          <WallPicker activeWall={wall} onWallSelect={setWall} />
+          <WallPicker walls={Object.keys(defaultSquares)} activeWall={wall} onWallSelect={setWall} />
         </div>
         <div style={{border: `${STEP_SIZE}px solid gray`, height: `${STEP_SIZE * STEPS + STEP_SIZE * 2}px`, width: `${STEP_SIZE * STEPS + STEP_SIZE * 2}px`, margin: '1em'}}>
           <Canvas squaresHash={squaresHash} showGrid={showGrid} setCoords={clickSquare(color)} squares={squareValues} setCanvasUrl={setCanvasUrl} steps={STEPS} stepSize={STEP_SIZE} />
@@ -138,6 +182,13 @@ function App() {
           <div>
             <Checkbox checked={showGrid} onChange={() => setShowGrid(!showGrid)}>Show Grid</Checkbox>
             <RgbColorPicker color={color} onChange={setColor} />
+            <FunctionButton
+              contractFunction={updateBricks}
+              provider={provider}
+              args={updateBrickArgs}
+              txValue={updateBricksTxValue}
+              onSuccess={() => {}}
+              isDisabled={!validUpdateBricksArgs} />
             <div>
               Selections - {squareValues.length}
               {
