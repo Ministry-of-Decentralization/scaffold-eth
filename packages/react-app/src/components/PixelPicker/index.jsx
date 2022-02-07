@@ -18,7 +18,8 @@ function getMousePos(canvas, evt) {
   ];
 }
 
-const drawSquare = (context, stepSize, coords, color) => {
+export const drawSquare = (context, stepSize, coords, color) => {
+  console.log(`daw square ${JSON.stringify(coords)}--${JSON.stringify(color)} ${stepSize}`)
   context.beginPath();
   context.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b})`
   context.fillRect(coords[0] * stepSize, coords[1] * stepSize, stepSize, stepSize);
@@ -26,7 +27,7 @@ const drawSquare = (context, stepSize, coords, color) => {
   context.stroke();
 }
 
-const drawGrid = (context, steps, stepLength, color = "red") => {
+export const drawGrid = (context, steps, stepLength, color = "red") => {
   context.beginPath()
   for ( let i = 0; i < steps - 1; i++) {
     context.moveTo((i+1) * stepLength, 0)
