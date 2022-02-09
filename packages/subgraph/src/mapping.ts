@@ -39,7 +39,7 @@ function getOrCreateBrick(_wall: i32, _x:i32, _y: i32 ): Brick {
     brick.x = _x
     brick.y = _y
     brick.rgb = '0x000000'
-    brick.owner = Address.fromString('0x0')
+    brick.owner = Address.fromString('0x0000000000000000000000000000000000000000')
     brick.price = BigInt.fromI32(0)
     brick.lastUpdated = BigInt.fromI32(0)
     brick.save()
@@ -52,7 +52,7 @@ export function handleBrickUpdated(event: BrickUpdated): void {
   let brick = getOrCreateBrick(event.params.wall, event.params.x, event.params.y);
 
   brick.owner = event.transaction.from
-  brick.rgb = event.params.rgb.toString()
+  brick.rgb = event.params.rgb.toHexString()
   brick.price = event.params.price
   brick.lastUpdated = event.block.timestamp
 
