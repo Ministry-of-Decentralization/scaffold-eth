@@ -3,10 +3,10 @@ schema:
   file: ./src/schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: YourContract
+    name: PixelBoard
     network: localhost
     source:
-      address: "{{localhost_YourContractAddress}}"
+      address: "{{localhost_PixelBoardAddress}}"
       abi: PixelBoard
       startBlock: 1
     mapping:
@@ -18,7 +18,7 @@ dataSources:
         - Wall
       abis:
         - name: PixelBoard
-          file: ./abis/localhost_YourContract.json
+          file: ./abis/localhost_PixelBoard.json
       eventHandlers:
         - event: BrickUpdated(address,uint8,uint16,uint16,bytes3,uint256)
           handler: handleBrickUpdated

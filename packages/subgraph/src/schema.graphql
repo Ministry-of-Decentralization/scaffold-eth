@@ -1,14 +1,16 @@
 type Brick @entity {
   id: ID!
-  owner: Address!
+  owner: Bytes!
   x: Int!
   y: Int!
   rgb: String!
-  lastUpdated: String!
+  price: BigInt!
+  lastUpdated: BigInt!
+  wall: Wall!
 }
 
 type Wall @entity {
   id: ID!
-  bricks: [Brick!]!
+  bricks: [Brick!] @derivedFrom(field: "wall")
   rowCount: Int!
 }
