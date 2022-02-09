@@ -33,15 +33,19 @@ const WallViewer = ({readContracts}) => {
   }
 
   useEffect(() => {
-    const fetchWallColors = async (wall) => {
+    const fetchWallRows = async (wall) => {
       setLoadingWall(true)
-      console.log(`<><><><><>getting wallColors for ${wall} ${readContracts}`)
-      const colors = await readContracts.PixelBoard.getWallColors([wall])
+
+      const rowCount = 150
+      const rows = Array.apply(null, Array(rowCount)).map(async (_, i) => readContracts.PixelBoard.getWallRow(wall, i))
+      // const wallColors = await Promise.all(rows)
+      const wallColors = (await Promise.all(rows)).map((r) => r.colors).reduce((acc, row) => acc.concat(row), []).reduce((acc, row) => acc.concat(row), [])
+      console.log('{{{{{{{{got row colors', JSON.stringify(wallColors))
       setLoadingWall(false)
-      console.log(`got wallColors ${colors}`)
-      setWallColors(transformWallColors(colors, 150))
+      setWallColors(transformWallColors(wallColors, 150))
+
     }
-    fetchWallColors(walls.indexOf(wall))
+    fetchWallRows(walls.indexOf(wall))
   }, [wall])
 
   useEffect(() => {

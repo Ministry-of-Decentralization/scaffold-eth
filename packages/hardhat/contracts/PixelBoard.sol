@@ -7,12 +7,6 @@ contract PixelBoard is Ownable {
   // enum Walls { north, south, east, west, floor, ceiling }
   // the number of colored squares or "bricks" per row
   uint16 constant public brickRowCount = 150;
-
-  // walls are squares so the number of bricks per wall is rowCount * rowCount
-  uint16 constant public brickWallCount = brickRowCount * brickRowCount;
-  // color value for each brick are stored as rgb so the length of the array of brock colors is 3 * rowCount 
-  uint16 constant public bricksColorRowLength = 3 * brickRowCount;
- 
   
   struct Brick {
     address owner;
@@ -23,7 +17,6 @@ contract PixelBoard is Ownable {
 
   struct Wall {
     Brick[brickRowCount][brickRowCount] bricks;
-    bytes3[brickWallCount] brickColors;
   }
 
   event BrickUpdated(address owner, uint8 wall,  uint16 x, uint16 y, bytes3 rgb, uint256 price);
@@ -31,23 +24,19 @@ contract PixelBoard is Ownable {
 
   mapping(uint8 => Wall) walls;
 
-  constructor () {
+  constructor () public {
     emit PixelBoardInit(msg.sender, brickRowCount);
   }
 
   function updateBrick(uint8 _wall, uint16 _x, uint16 _y, bytes3 _rgb, uint _price) internal {
     require(_x < brickRowCount && _y < brickRowCount && _wall < 6, "Coordinates are out of bounds");
     Wall storage wall = walls[_wall];
-    Brick storage brick = wall.bricks[_x][_y];
+    Brick storage brick = wall.bricks[_y][_x];
     require(_price > brick.lastPrice, "Bid too low");
     brick.lastPrice = _price;
     brick.lastUpdated = block.timestamp;
     brick.rgb = _rgb;
     brick.owner = msg.sender;
-
-    uint16 brickColorIndex = _y * brickRowCount + _x;
-
-    wall.brickColors[brickColorIndex] = _rgb;
 
     emit BrickUpdated(msg.sender, _wall, _x, _y, _rgb, _price);
 
@@ -88,35 +77,30 @@ contract PixelBoard is Ownable {
     uint lastUpdated,
     uint lastPrice
   ) {
-    Brick memory brick = walls[_wall].bricks[_x][_y];
+    Brick memory brick = walls[_wall].bricks[_y][_x];
     owner = brick.owner;
     rgb = brick.rgb;
     lastUpdated = brick.lastUpdated;
     lastPrice =  brick.lastPrice;
   }
 
-  // get an entire wall array, requires ~28MM gas
-  function getWallColors(
-    uint8 _wall
-  ) public view returns (
-    bytes3[brickWallCount] memory
-  ) {
-    return walls[_wall].brickColors;
-  }
-
   function getWallRow(
     uint8 _wall,
     uint8 _row
   ) public view returns (
-    bytes3[brickRowCount] memory row
+    bytes3[brickRowCount] memory colors,
+    address[brickRowCount] memory owners,
+    uint[brickRowCount] memory prices,
+    uint[brickRowCount] memory lastUpdates
   ) {
     Wall storage wall = walls[_wall];
-    uint32 start = _row * brickRowCount;
     for (uint32 i = 0; i < brickRowCount; i++) {
-      uint32 copyIndex = start + i;
       // console.log("copying wall:", copyIndex, i, wall.brickColors[start + i]);
-
-      row[i] = wall.brickColors[copyIndex];
+      Brick memory brick = wall.bricks[_row][i];
+      colors[i] = brick.rgb;
+      owners[i] = brick.owner;
+      prices[i] = brick.lastPrice;
+      lastUpdates[i] = brick.lastUpdated;
     }
   }
 

@@ -19,7 +19,6 @@ function getMousePos(canvas, evt) {
 }
 
 export const drawSquare = (context, stepSize, coords, color) => {
-  console.log(`daw square ${JSON.stringify(coords)}--${JSON.stringify(color)} ${stepSize}`)
   context.beginPath();
   context.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b})`
   context.fillRect(coords[0] * stepSize, coords[1] * stepSize, stepSize, stepSize);
