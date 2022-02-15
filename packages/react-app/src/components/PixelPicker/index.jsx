@@ -18,9 +18,21 @@ function getMousePos(canvas, evt) {
   ];
 }
 
+const getRgb = (color) => {
+  if (typeof color === 'string') {
+    return {
+      r: parseInt(color.slice(2,4), 16),
+      g: parseInt(color.slice(4,6), 16),
+      b: parseInt(color.slice(6), 16)
+    }
+  } else {
+    return color
+  }
+}
 export const drawSquare = (context, stepSize, coords, color) => {
   context.beginPath();
-  context.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b})`
+  const {r, g,b} = getRgb(color)
+  context.fillStyle = `rgba(${r}, ${g}, ${b})`
   context.fillRect(coords[0] * stepSize, coords[1] * stepSize, stepSize, stepSize);
 
   context.stroke();
@@ -196,7 +208,6 @@ function App({ provider, writeContracts}) {
                   .slice(0)
                   .reverse()
                   .map( (s, i) => {
-                    console.log(s.color)
                     const color = `rgb(${s.color.r}, ${s.color.g}, ${s.color.b})`
                     console.log(color)
                     return (

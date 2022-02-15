@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import WallPicker from './PixelPicker/WallPicker'
 import { drawSquare, drawGrid } from './PixelPicker/'
 import { defaultSquares } from './PixelPicker'
+import { useGetWallBricks } from './queries/pixelBoardSubgraph'
 
 const transformWallColors = (wallColors, rowLength) => {
   return wallColors.map((wallColor, i) => {
@@ -20,10 +21,11 @@ const transformWallColors = (wallColors, rowLength) => {
 }
 
 const WallViewer = ({readContracts}) => {
-  const [wall, setWall] = useState('north')
+  const [wall, setWall] = useState('ceiling')
   const [wallColors, setWallColors] = useState(null)
   const [loadingWall, setLoadingWall] = useState(false)
   const canvasRef = useRef(null)
+  const wallBricks = useGetWallBricks(wall, 150)
 
   const walls = Object.keys(defaultSquares)
 
@@ -32,6 +34,7 @@ const WallViewer = ({readContracts}) => {
     setWallColors(null)
   }
 
+  /** 
   useEffect(() => {
     const fetchWallRows = async (wall) => {
       setLoadingWall(true)
@@ -48,31 +51,31 @@ const WallViewer = ({readContracts}) => {
     fetchWallRows(walls.indexOf(wall))
   }, [wall])
 
+ */
   useEffect(() => {
-    console.log(`render wallColors ${wallColors}`)
-    if (wallColors) {
+    if (wallBricks.wallColors) {
       const canvas = canvasRef.current
       const context = canvas.getContext('2d')
       context.clearRect(0,0, canvas.width, canvas.height)
-      console.log(`drawing squares ${JSON.stringify(wallColors[0])} -- ${wallColors[0].color}`)
       drawGrid(context, 150, 7)
-
-      wallColors.forEach((square) => drawSquare(context, 7, square.coords, square.color))
+      console.log(`!!!!!!!!!!!!!!!!!!!!${wallBricks.wallColors.length} ----`)
+      wallBricks.wallColors.forEach((square) => drawSquare(context, 7, square.coords, square.color))
     }
-  }, [wallColors])
+  }, [wallBricks.wallColors])
+
 
   return (
     <div>
       <WallPicker walls={walls} activeWall={wall} onWallSelect={updateSelectedWall} />
       <div>
-        {loadingWall ? 
+        {wallBricks.loading ? 
           'Loading'
           :
           null}
           <div style={{border: 'black 2px solid'}}>
           <canvas
-            height={`750px`}
-            width={`750px`}
+            height={`950px`}
+            width={`950px`}
             ref={canvasRef}
           />
           </div>
