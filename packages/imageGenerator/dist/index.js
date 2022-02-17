@@ -1,15 +1,4 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -46,77 +35,74 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 require('dotenv').config();
-var questionGroup_1 = require("./queries/questionGroup");
-var question_1 = require("./queries/question");
-var getRewards_1 = __importDefault(require("./getRewards"));
-var publishReward_1 = require("./publishReward");
-var types_1 = require("./types");
-var calculateQuestionGroup = function (group) { return __awaiter(void 0, void 0, void 0, function () {
-    var questions, answerCount, groupData, rewardsResponse;
+var ethers_1 = require("ethers");
+var getWallBricks_1 = require("./queries/getWallBricks");
+var imageGenerator_1 = require("./utils/imageGenerator");
+var DEFAULT_RGB = '0xffffff';
+var DEFAULT_OWNER = '0x0000000000000000000000000000000000000000';
+var DEFAULT_PRICE = ethers_1.utils.parseUnits('0.1');
+var WALLS = [
+    'north',
+    'south',
+    'east',
+    'west',
+    'floor',
+    'ceiling'
+];
+var generateDefaultBrick = function (x, y) {
+    return {
+        x: x,
+        y: y,
+        owner: DEFAULT_OWNER,
+        rgb: DEFAULT_RGB,
+        price: DEFAULT_PRICE
+    };
+};
+var getColorsFromBricks = function (bricks, rowLength) {
+    return bricks.map(function (brick, i) {
+        var x = i % rowLength;
+        var y = Math.floor(i / rowLength);
+        return {
+            color: brick.rgb,
+            coords: [x, y]
+        };
+    });
+};
+var formatWallBricks = function (bricks, rowLength, rowCount) {
+    return Array(rowLength * rowCount).fill(0).map(function (_, i) {
+        var x = i % rowLength;
+        var y = Math.floor(i / rowLength);
+        var brick = bricks.find(function (brick) { return brick.x === x && brick.y === y; });
+        return brick || generateDefaultBrick(x, y);
+    });
+};
+var fetchWallBricks = function (wallId) { return __awaiter(void 0, void 0, void 0, function () {
+    var response, bricks, wallColors;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log("calculating group : \n" + JSON.stringify(group));
-                return [4 /*yield*/, Promise.all(group.questions.map(function (question) {
-                        return question_1.getQuestion(question.id, group.category.id);
-                    }))
-                    //@ts-ignore
-                ];
-            case 1:
-                questions = _a.sent();
-                answerCount = parseInt(questions[0].question.answerCount, 10);
-                if (!(parseInt(group.minimumRequiredAnswers, 10) > answerCount)) return [3 /*break*/, 2];
-                publishReward_1.updateInvalidAndRefund(group, questions);
-                return [3 /*break*/, 4];
-            case 2:
-                console.log("QuestionGroup " + group.id + " VALID, getting rewards");
-                groupData = __assign(__assign({}, group), { questions: questions });
-                return [4 /*yield*/, getRewards_1.default(groupData)];
-            case 3:
-                rewardsResponse = _a.sent();
-                if (rewardsResponse.error) {
-                    console.log("Error calculating rewards for group " + group.id + "\nError Message: " + rewardsResponse.error);
-                }
-                else {
-                    console.log("Got rewards response " + rewardsResponse.data);
-                    //const rewards = JSON.parse(rewardsResponse.data)
-                    if (rewardsResponse.data.answerStatus === types_1.AnswerStatus.Success) {
-                        console.log('Valid answer calculation');
-                        publishReward_1.updateQuestionStatusAndReward(rewardsResponse.data);
-                    }
-                    else {
-                        console.log('Invalid answer calculation');
-                        publishReward_1.updateInvalidAndRefund(group, questions);
-                    }
-                }
-                _a.label = 4;
-            case 4: return [2 /*return*/];
-        }
-    });
-}); };
-var fetchQuestionsToCalculate = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, questionGroup_1.getEndedQuestionGroups()];
+                console.log("fetching wall ".concat(wallId));
+                return [4 /*yield*/, (0, getWallBricks_1.getAllWallBricks)(wallId)];
             case 1:
                 response = _a.sent();
+                console.log("got all bricks for ".concat(wallId, " wall ").concat(response.bricks.length));
                 if (response.error) {
-                    console.log("Error fetching question groups: " + response.error);
+                    console.log("Error fetching ".concat(wallId, " wall bricks : ").concat(response.error));
                     return [2 /*return*/];
                 }
-                return [4 /*yield*/, Promise.all(response.data.questionGroups.map(calculateQuestionGroup))];
-            case 2:
-                _a.sent();
+                bricks = formatWallBricks(response.bricks, 150, 150);
+                wallColors = getColorsFromBricks(bricks, 150);
+                (0, imageGenerator_1.generateWallImage)(wallId, wallColors);
                 return [2 /*return*/];
         }
     });
 }); };
-console.log("fetch interval " + process.env.FETCH_INTERVAL);
-//@ts-ignore
-setInterval(fetchQuestionsToCalculate, process.env.FETCH_INTERVAL);
+var fetchAllWalls = function () {
+    console.log("fetching all walls");
+    WALLS.forEach(fetchWallBricks);
+};
+console.log("fetch interval ".concat(process.env.FETCH_INTERVAL));
+var interval = parseInt(process.env.FETCH_INTERVAL || '60000', 10);
+setInterval(fetchAllWalls, interval);

@@ -1,10 +1,9 @@
 import { gql } from '@apollo/client';
-import { responsePathAsArray } from 'graphql';
 import { subgraphClient } from '../client';
 
 const QUERY_LIMIT = 1000
 export const GET_WALL_BRICKS = gql`
-  query bricks($wallId: ID!, $lastBrickId: ID!, $queryLimit: number!) {
+  query bricks($wallId: ID!, $lastBrickId: ID!, $queryLimit: Int!) {
     bricks(first: $queryLimit, where:{id_gt: $lastBrickId, wall: $wallId}) {
       id
       owner
@@ -52,6 +51,7 @@ export const getAllWallBricks = async (wallId: string) => {
       error = response.error
     }
     const responseLength = response.data.bricks.length
+
     bricks = bricks.concat(response.data.bricks)
     if (responseLength < QUERY_LIMIT) {
       remainingBricks = false

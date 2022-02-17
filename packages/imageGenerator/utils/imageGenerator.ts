@@ -3,7 +3,11 @@ const { createCanvas } = require('canvas')
 
 const getCanvasContext = (height: number, width: number) => {
   const canvas = createCanvas(width, height)
-  return canvas.getContext('2d')
+  const context =  canvas.getContext('2d')
+  return {
+    canvas,
+    context
+  }
 }
 
 const getRgb = (color: any) => {
@@ -20,16 +24,20 @@ const getRgb = (color: any) => {
 export const drawSquare = (context: any, stepSize: number, coords: any, color: any) => {
   context.beginPath();
   const {r, g,b} = getRgb(color)
-  context.fillStyle = `rgba(${r}, ${g}, ${b})`
+  context.fillStyle = `rgba(${r},${g},${b},1)`
   context.fillRect(coords[0] * stepSize, coords[1] * stepSize, stepSize, stepSize);
 
   context.stroke();
 }
 
 export const generateWallImage = (wallId: string, bricks: any) => {
-  const context = getCanvasContext(600, 600)
+  console.log(`generating image for ${wallId} wall`)
+  const {canvas, context } = getCanvasContext(1000, 1000)
   bricks.forEach((brick: any) => drawSquare(context, 7, brick.coords, brick.color))
 
-  const buffer = context.toBuffer('image/png')
-  fs.writeFileSync(`../images/${wallId}.png`, buffer)
+
+  const buffer = canvas.toBuffer('image/png')
+  fs.writeFileSync(`./images/${wallId}.png`, buffer)
+  console.log(`image for ${wallId} wall generated`)
+
 }

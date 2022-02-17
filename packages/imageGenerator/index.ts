@@ -1,8 +1,7 @@
+require('dotenv').config()
 import { utils } from 'ethers';
 import { getAllWallBricks } from "./queries/getWallBricks"
 import { generateWallImage } from './utils/imageGenerator';
-
-require('dotenv').config()
 
 const DEFAULT_RGB = '0xffffff'
 const DEFAULT_OWNER = '0x0000000000000000000000000000000000000000'
@@ -49,16 +48,19 @@ const formatWallBricks = (bricks: any, rowLength: number, rowCount: number) => {
 const fetchWallBricks = async (wallId: string) => {
   console.log(`fetching wall ${wallId}`)
   const response = await getAllWallBricks(wallId)
+  console.log(`got all bricks for ${wallId} wall ${response.bricks.length}`)
   if (response.error) {
     console.log(`Error fetching ${wallId} wall bricks : ${response.error}`)
     return 
   }
   const bricks = formatWallBricks(response.bricks, 150, 150)
   const wallColors = getColorsFromBricks(bricks, 150)
+
   generateWallImage(wallId, wallColors)
 }
 
 const fetchAllWalls = () => {
+  console.log(`fetching all walls`)
   WALLS.forEach(fetchWallBricks)
 }
 
